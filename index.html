@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鵩鸟赋-完形填空</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: "KaiTi", "楷体", "STKaiti", serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .author {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+        
+        .intro {
+            background: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            line-height: 1.8;
+            color: #34495e;
+        }
+        
+        .content {
+            line-height: 2.5;
+            font-size: 1.3em;
+            color: #2c3e50;
+        }
+        
+        .line {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .line:hover {
+            background: #fff9e6;
+            transform: translateX(10px);
+        }
+        
+        .char {
+            display: inline-block;
+            padding: 2px 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 4px;
+        }
+        
+        .line:hover .char:hover {
+            background: #ffd700;
+            transform: scale(1.2);
+            font-weight: bold;
+            color: #c0392b;
+        }
+        
+        .result-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+            display: none;
+            z-index: 1000;
+            min-width: 450px;
+            max-width: 90vw;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .result-panel.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -45%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+        
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            z-index: 999;
+        }
+        
+        .overlay.show {
+            display: block;
+        }
+        
+        .close-btn {
+            float: right;
+            font-size: 28px;
+            cursor: pointer;
+            color: #95a5a6;
+            transition: color 0.2s;
+            line-height: 1;
+            user-select: none;
+        }
+        
+        .close-btn:hover {
+            color: #e74c3c;
+        }
+        
+        .original-info {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .original-info > div {
+            margin: 8px 0;
+        }
+        
+        .predictions {
+            margin-top: 20px;
+        }
+        
+        .pred-item {
+            padding: 12px;
+            margin: 8px 0;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #3498db;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .pred-item.rank-1 {
+            border-left-color: #e74c3c;
+            background: #ffebee;
+        }
+        
+        .pred-item.original {
+            border-left-color: #27ae60;
+            background: #d4edda;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #3498db;
+            font-size: 1.2em;
+            padding: 20px;
+        }
+        
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+        
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+        
+        .error {
+            color: #e74c3c;
+            background: #ffebee;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #e74c3c;
+        }
+
+        .error a {
+            color: #3498db;
+            text-decoration: underline;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+        
+        .status-normal {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-low {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-abnormal {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>鵩鸟赋</h1>
+        <div class="author">[汉] 贾谊</div>
+        
+        <div class="intro">
+            谊为长沙王傅三年，有鵩飞入谊舍。鵩似鸮，不祥鸟也。谊即以谪居长沙，长沙卑湿，谊自伤悼，以为寿不得长，乃为赋以自广也。其辞曰：
+        </div>
+        
+        <div class="content" id="content"></div>
+    </div>
+    
+    <div class="overlay" id="overlay"></div>
+    <div class="result-panel" id="resultPanel">
+        <span class="close-btn" onclick="closePanel()">×</span>
+        <div id="resultContent"></div>
+    </div>
+    
+    <script>
+        const API_URL = 'https://lungfish-funiaofu.hf.space/api/predict';
+        
+        const text = `单阏之岁兮，四月孟夏，庚子日斜兮，鵩集予舍。
+止于坐隅兮，貌甚闲暇。
+异物来萃兮，私怪其故。
+发书占之兮，谶言其度，曰："野鸟入室兮，主人将去。"
+请问于鵩兮："予去何之？吉乎告我，凶言其灾。淹速之度兮，语予其期。"
+
+鵩乃叹息，举首奋翼；口不能言，请对以臆：
+
+"万物变化兮，固无休息。斡流而迁兮，或推而还。形气转续兮，变化而蟺。沕穆无穷兮，胡可胜言！
+祸兮福所依，福兮祸所伏；忧喜聚门兮，吉凶同域。
+彼吴强大兮，夫差以败；越栖会稽兮，勾践霸世。
+斯游遂成兮，卒被五刑；傅说胥靡兮，乃相武丁。
+夫祸之与福兮，何异纠纆；命不可说兮，孰知其极！
+水激则旱兮，矢激则远；万物回薄兮，振荡相转。
+云蒸雨降兮，纠错相纷；大钧播物兮，坱圠无垠。
+天不可预虑兮，道不可预谋；迟速有命兮，焉识其时。"
+
+且夫天地为炉兮，造化为工；阴阳为炭兮，万物为铜。
+合散消息兮，安有常则？千变万化兮，未始有极。
+忽然为人兮，何足控抟；化为异物兮，又何足患！
+小智自私兮，贱彼贵我；达人大观兮，物无不可。
+贪夫殉财兮，烈士殉名。夸者死权兮，品庶每生。
+怵迫之徒兮，或趋西东；大人不曲兮，意变齐同。
+愚士系俗兮，窘若囚拘；至人遗物兮，独与道俱。
+众人惑惑兮，好恶积亿；真人恬漠兮，独与道息。
+释智遗形兮，超然自丧；寥廓忽荒兮，与道翱翔。
+乘流则逝兮，得坻则止；纵躯委命兮，不私与己。
+其生兮若浮，其死兮若休；澹乎若深渊之静，泛乎若不系之舟。
+不以生故自宝兮，养空而浮；德人无累，知命不忧。
+细故蒂芥，何足以疑！"`;
+        
+        const lines = text.split('\n').filter(line => line.trim());
+        const contentDiv = document.getElementById('content');
+        
+        // 渲染文本
+        lines.forEach((line) => {
+            const lineDiv = document.createElement('div');
+            lineDiv.className = 'line';
+            
+            const chars = Array.from(line);
+            chars.forEach((char, charIndex) => {
+                const charSpan = document.createElement('span');
+                charSpan.className = 'char';
+                charSpan.textContent = char;
+                charSpan.onclick = () => handleCharClick(line, charIndex);
+                lineDiv.appendChild(charSpan);
+            });
+            
+            contentDiv.appendChild(lineDiv);
+        });
+        
+        // 处理字符点击
+        async function handleCharClick(sentence, maskIndex) {
+            const chars = Array.from(sentence);
+            const clickedChar = chars[maskIndex];
+            
+            // 检查是否是标点
+            if (/[\s，。！？；：、""''《》【】()（）]/.test(clickedChar)) {
+                alert('标点符号无法分析');
+                return;
+            }
+            
+            const overlay = document.getElementById('overlay');
+            const panel = document.getElementById('resultPanel');
+            const resultContent = document.getElementById('resultContent');
+            
+            overlay.classList.add('show');
+            panel.classList.add('show');
+            resultContent.innerHTML = '<div class="loading">正在分析</div>';
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sentence: sentence,
+                        mask_index: maskIndex,
+                        top_k: 5
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                
+                const data = await response.json();
+                console.log('API 返回:', data);
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                displayResult(data, sentence, maskIndex);
+                
+            } catch (error) {
+                console.error('详细错误:', error);
+                resultContent.innerHTML = `
+                    <div class="error">
+                        <strong>错误:</strong> ${error.message}<br><br>
+                        <strong>可能原因：</strong><br>
+                        1. 网络连接问题<br>
+                        2. 模型正在处理中<br>
+                        3. 服务器暂时不可用<br><br>
+                        <a href="https://huggingface.co/spaces/lungfish/funiaofu" target="_blank">访问 Space 页面查看状态</a>
+                    </div>`;
+            }
+        }
+        
+        // 显示结果
+        function displayResult(data, sentence, maskIndex) {
+            const resultContent = document.getElementById('resultContent');
+            
+            // 确定状态
+            let statusText = '正常';
+            let statusClass = 'status-normal';
+            if (data.rank > 50) {
+                statusText = '异常';
+                statusClass = 'status-abnormal';
+            } else if (data.rank > 10) {
+                statusText = '较低';
+                statusClass = 'status-low';
+            }
+            
+            let html = `
+                <h2 style="color: #2c3e50; margin-bottom: 20px;">预测结果</h2>
+                <div style="margin-bottom: 15px; color: #7f8c8d; border-bottom: 1px solid #e0e0e0; padding-bottom: 10px;">
+                    <strong>原句：</strong>${getMaskedSentence(sentence, maskIndex)}
+                </div>
+                <div class="original-info">
+                    <div style="margin-bottom: 15px; text-align: center;">
+                        <strong>分析字符：</strong>
+                        <span style="font-size: 2.5em; color: #e74c3c; margin: 0 10px; font-weight: bold;">${data.original_char}</span>
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                    </div>
+                    <div><strong>置信度：</strong>${(data.prob * 100).toFixed(2)}%</div>
+                    <div><strong>rank：</strong>第 ${data.rank} </div>
+                    <div><strong>Top1与之的相似度：</strong>${data.cos_sim.toFixed(4)}(cosine_similarity)</div>
+                </div>
+                <div class="predictions">
+                    <h3 style="color: #34495e; margin-bottom: 15px;">置信度Top 5（已过滤标点和虚词）</h3>
+            `;
+            
+            data.top_k.forEach(([char, prob], index) => {
+                const isOriginal = char === data.original_char;
+                const itemClass = isOriginal ? 'pred-item original' : (index === 0 ? 'pred-item rank-1' : 'pred-item');
+                
+                html += `
+                    <div class="${itemClass}">
+                        <strong style="min-width: 25px;">${index + 1}.</strong> 
+                        <span style="font-size: 1.5em; font-weight: bold; min-width: 40px; text-align: center;">${char}</span>
+                        <span style="color: #7f8c8d; flex-grow: 1;">${(prob * 100).toFixed(2)}%</span>
+                        ${isOriginal ? '<span style="color: #27ae60; font-weight: bold;">✓ 原字</span>' : ''}
+                    </div>
+                `;
+            });
+            
+            html += `
+                </div>
+                <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e0e0e0; color: #7f8c8d; font-size: 0.9em;">
+                    模型：BERT | 权重：GuwenBERT（®Datahammer, Beijing Institute of Technology）
+                </div>
+            `;
+            
+            resultContent.innerHTML = html;
+        }
+
+        function getMaskedSentence(sentence, position) {
+    const chars = Array.from(sentence);
+    chars[position] = '<span style="color:grey">[Mask]</span>';
+    return chars.join('');
+} 
+        
+        // 关闭面板
+        function closePanel() {
+            document.getElementById('overlay').classList.remove('show');
+            document.getElementById('resultPanel').classList.remove('show');
+        }
+        
+        document.getElementById('overlay').onclick = closePanel;
+        
+        // ESC 键关闭
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closePanel();
+            }
+        });
+    </script>
+</body>
+</html>
