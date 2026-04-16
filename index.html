@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>鵩鸟赋-完形填空</title>
+    <title>贾谊赋作 - 完形填空</title>
     <style>
         * {
             margin: 0;
@@ -25,6 +25,46 @@
             padding: 40px;
             border-radius: 15px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        /* 标签页样式 */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 1.1em;
+            font-family: inherit;
+            color: #7f8c8d;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab:hover {
+            color: #2c3e50;
+            background: #f8f9fa;
+        }
+        
+        .tab.active {
+            color: #e74c3c;
+            border-bottom-color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
         }
         
         h1 {
@@ -240,14 +280,30 @@
 </head>
 <body>
     <div class="container">
-        <h1>鵩鸟赋</h1>
+        <h1>贾谊赋作二则</h1>
         <div class="author">[汉] 贾谊</div>
         
-        <div class="intro">
-            谊为长沙王傅三年，有鵩飞入谊舍。鵩似鸮，不祥鸟也。谊即以谪居长沙，长沙卑湿，谊自伤悼，以为寿不得长，乃为赋以自广也。其辞曰：
+        <!-- 标签页切换 -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab(0)">鵩鸟赋</button>
+            <button class="tab" onclick="switchTab(1)">吊屈原赋</button>
         </div>
         
-        <div class="content" id="content"></div>
+        <!-- 鵩鸟赋 -->
+        <div class="tab-content active" id="tab-0">
+            <div class="intro">
+                谊为长沙王傅三年，有鵩飞入谊舍。鵩似鸮，不祥鸟也。谊即以谪居长沙，长沙卑湿，谊自伤悼，以为寿不得长，乃为赋以自广也。其辞曰：
+            </div>
+            <div class="content" id="content-0"></div>
+        </div>
+        
+        <!-- 吊屈原赋 -->
+        <div class="tab-content" id="tab-1">
+            <div class="intro">
+                谊为长沙王太傅，既以谪去，意不自得。及渡湘水，为赋以吊屈原。屈原，楚贤臣也。被谗放逐，作离骚赋。其终篇曰："已矣哉！国无人兮，莫我知也。"遂自投汨罗而死。谊追伤之，因自喻。其辞曰：
+            </div>
+            <div class="content" id="content-1"></div>
+        </div>
     </div>
     
     <div class="overlay" id="overlay"></div>
@@ -259,7 +315,10 @@
     <script>
         const API_URL = 'https://lungfish-funiaofu.hf.space/api/predict';
         
-        const text = `单阏之岁兮，四月孟夏，庚子日斜兮，鵩集予舍。
+        // 两篇赋的文本
+        const texts = [
+            // 鵩鸟赋
+            `单阏之岁兮，四月孟夏，庚子日斜兮，鵩集予舍。
 止于坐隅兮，貌甚闲暇。
 异物来萃兮，私怪其故。
 发书占之兮，谶言其度，曰："野鸟入室兮，主人将去。"
@@ -288,27 +347,70 @@
 乘流则逝兮，得坻则止；纵躯委命兮，不私与己。
 其生兮若浮，其死兮若休；澹乎若深渊之静，泛乎若不系之舟。
 不以生故自宝兮，养空而浮；德人无累，知命不忧。
-细故蒂芥，何足以疑！"`;
-        
-        const lines = text.split('\n').filter(line => line.trim());
-        const contentDiv = document.getElementById('content');
-        
-        // 渲染文本
-        lines.forEach((line) => {
-            const lineDiv = document.createElement('div');
-            lineDiv.className = 'line';
+细故蒂芥，何足以疑！"`,
             
-            const chars = Array.from(line);
-            chars.forEach((char, charIndex) => {
-                const charSpan = document.createElement('span');
-                charSpan.className = 'char';
-                charSpan.textContent = char;
-                charSpan.onclick = () => handleCharClick(line, charIndex);
-                lineDiv.appendChild(charSpan);
+            // 吊屈原赋
+            `恭承嘉惠兮，俟罪长沙。侧闻屈原兮，自沉汨罗。
+造讬湘流兮，敬吊先生。遭世罔极兮，乃殒厥身。
+
+呜呼哀哉！逢时不祥。鸾凤伏窜兮，鸱枭翱翔。
+阘茸尊显兮，谗谀得志。贤圣逆曳兮，方正倒植。
+世谓随夷为溷兮，谓跖蹻为廉。莫邪为钝兮，铅刀为铦。
+吁嗟默默，生之无故兮。斡弃周鼎，宝康瓠兮。
+腾驾罢牛，骖蹇驴兮。骥垂两耳，服盐车兮。
+章甫荐履，渐不可久兮。嗟苦先生，独离此咎兮。
+
+讯曰：
+已矣！国其莫我知兮，独壹郁其谁语？凤漂漂其高逝兮，固自引而远去。
+袭九渊之神龙兮，沕深潜以自珍。偭蟂獭以隐处兮，夫岂从虾与蛭螾？
+所贵圣人之神德兮，远浊世而自藏。使骐骥可得系而羁兮，岂云异夫犬羊？
+般纷纷其离此尤兮，亦夫子之故也。历九州而相其君兮，何必怀此都也？
+凤凰翔于千仞兮，览德辉而下之。见细德之险征兮，遥曾击而去之。
+彼寻常之污渎兮，岂容夫吞舟之巨鱼？横江湖之鳣鲸兮，固将制于蝼蚁。`
+        ];
+        
+        // 初始化两篇赋
+        texts.forEach((text, index) => {
+            const lines = text.split('\n').filter(line => line.trim());
+            const contentDiv = document.getElementById(`content-${index}`);
+            
+            lines.forEach((line) => {
+                const lineDiv = document.createElement('div');
+                lineDiv.className = 'line';
+                
+                const chars = Array.from(line);
+                chars.forEach((char, charIndex) => {
+                    const charSpan = document.createElement('span');
+                    charSpan.className = 'char';
+                    charSpan.textContent = char;
+                    charSpan.onclick = () => handleCharClick(line, charIndex);
+                    lineDiv.appendChild(charSpan);
+                });
+                
+                contentDiv.appendChild(lineDiv);
+            });
+        });
+        
+        // 切换标签页
+        function switchTab(index) {
+            // 更新标签按钮
+            document.querySelectorAll('.tab').forEach((tab, i) => {
+                if (i === index) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
             });
             
-            contentDiv.appendChild(lineDiv);
-        });
+            // 更新内容
+            document.querySelectorAll('.tab-content').forEach((content, i) => {
+                if (i === index) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+        }
         
         // 处理字符点击
         async function handleCharClick(sentence, maskIndex) {
@@ -398,7 +500,7 @@
                     </div>
                     <div><strong>置信度：</strong>${(data.prob * 100).toFixed(2)}%</div>
                     <div><strong>rank：</strong>第 ${data.rank} </div>
-                    <div><strong>Top1与之的相似度：</strong>${data.cos_sim.toFixed(4)}(cosine_similarity)</div>
+                    <div><strong>Top1与之的相似度：</strong>${data.cos_sim.toFixed(4)} (cosine_similarity)</div>
                 </div>
                 <div class="predictions">
                     <h3 style="color: #34495e; margin-bottom: 15px;">置信度Top 5（已过滤标点和虚词）</h3>
@@ -421,7 +523,7 @@
             html += `
                 </div>
                 <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e0e0e0; color: #7f8c8d; font-size: 0.9em;">
-                    模型：BERT | 权重：GuwenBERT（®Datahammer, Beijing Institute of Technology）
+                    模型：BERT | 权重：GuwenBERT (®Datahammer, Beijing Institute of Technology)
                 </div>
             `;
             
@@ -429,10 +531,10 @@
         }
 
         function getMaskedSentence(sentence, position) {
-    const chars = Array.from(sentence);
-    chars[position] = '<span style="color:grey">[Mask]</span>';
-    return chars.join('');
-} 
+            const chars = Array.from(sentence);
+            chars[position] = '<span style="color:grey; font-weight:bold;">[Mask]</span>';
+            return chars.join('');
+        } 
         
         // 关闭面板
         function closePanel() {
