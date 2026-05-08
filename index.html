@@ -62,9 +62,21 @@
             display: none;
         }
         
+        /* 修复点1：为正文标签页配置专属平滑动画 */
         .tab-content.active {
             display: block;
-            animation: fadeIn 0.3s ease;
+            animation: tabFadeIn 0.4s ease forwards;
+        }
+        
+        @keyframes tabFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
         h1 {
@@ -140,12 +152,13 @@
             overflow-y: auto;
         }
         
+        /* 修复点2：给居中弹窗配置专属带坐标偏移的动画 */
         .result-panel.show {
             display: block;
-            animation: fadeIn 0.3s ease;
+            animation: modalFadeIn 0.3s ease forwards;
         }
         
-        @keyframes fadeIn {
+        @keyframes modalFadeIn {
             from {
                 opacity: 0;
                 transform: translate(-50%, -45%);
@@ -450,7 +463,6 @@
                 }
                 
                 const data = await response.json();
-                console.log('API 返回:', data);
                 
                 if (data.error) {
                     throw new Error(data.error);
